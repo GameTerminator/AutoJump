@@ -1,0 +1,8 @@
+.DS_Store
+.gradle/
+.idea/
+autojump.iml
+autojump.ipr
+autojump.iws
+out/
+

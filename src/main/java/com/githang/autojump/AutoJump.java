@@ -21,8 +21,7 @@ public class AutoJump {
         BufferedImage target = ImageIO.read(new File("target.png"));
         int bWidth = target.getWidth();
         int bHeight = target.getHeight();
-        for (int i = 0; i < 300; i++) {
-            Thread.sleep(2000);
+        while (true) {
             BufferedImage image = helper.snapshot();
             width = image.getWidth();
             height = image.getHeight();
@@ -37,19 +36,16 @@ public class AutoJump {
                         LOG.info("找到位置: " + targetX + ", " + targetY);
                         final int distance = Math.abs(toX - targetX);
                         final int time;
-                        time = Math.max(350, (int) (distance * 2.4f));
+                        time = Math.max(330, (int) (distance * 2.38f));
                         LOG.info("距离：" + distance + "  按下时间：" + time + "ms");
                         helper.press(targetX, targetY, time);
-
                         Thread.sleep(time);
                         break FINDING;
                     }
                 }
             }
+            Thread.sleep(2000);
         }
-        helper.disconnect();
-        LOG.info("断开连接");
-        System.exit(0);
     }
 
     private static int findToX(int width, int height, BufferedImage image) {
