@@ -21,43 +21,64 @@ public class AutoJump {
         BufferedImage target = ImageIO.read(new File("target.png"));
         int bWidth = target.getWidth();
         int bHeight = target.getHeight();
-        while (true) {
+        int failedTimes = 0;
+        while (failedTimes <= 3) {
             BufferedImage image = helper.snapshot();
             width = image.getWidth();
             height = image.getHeight();
             LOG.info("查找位置");
-            int toX = findToX(width, height, image);
+            final Point point = findTargetPoint(width, height, image);
+            LOG.info("跳到：" + point.x + ", " + point.y);
+            failedTimes++;
             FINDING:
             for (int y = height * 2 / 5, endY = height * 4 / 5; y < endY; y++) {
                 for (int x = 0, endX = width - bWidth; x < endX; x++) {
                     if (isJumpFrom(image, target, x, y)) {
-                        final int targetX = x + bWidth / 2;
-                        final int targetY = y + bHeight / 2;
-                        LOG.info("找到位置: " + targetX + ", " + targetY);
-                        final int distance = Math.abs(toX - targetX);
+                        final int fromX = x + bWidth / 2;
+                        final int fromY = y + bHeight * 3 / 2;
+                        LOG.info("找到位置: " + fromX + ", " + fromY);
+                        final int distance = (int) Math.sqrt(Math.pow(point.x - fromX, 2) + Math.pow(point.y - fromY, 2));
                         final int time;
-                        time = Math.max(330, (int) (distance * 2.38f));
+                        final int min;
+                        if (distance < 40) {
+                            min = 260;
+                        } else if (distance < 60) {
+                            min = (int) (220 + distance * 1.2f);
+                        } else if (distance < 90) {
+                            min = 280 + (distance - 60) * 3 / 5;
+                        } else if (distance < 120){
+                            min = (int) (295 + (distance - 90) * 1.2f);
+                        } else {
+                            min = 330;
+                        }
+                        time = (int) Math.max(min, distance * (2.2 - distance / 4000f));
                         LOG.info("距离：" + distance + "  按下时间：" + time + "ms");
-                        helper.press(targetX, targetY, time);
+                        helper.press(fromX, fromY, time);
                         Thread.sleep(time);
+                        failedTimes = 0;
                         break FINDING;
                     }
                 }
             }
             Thread.sleep(2000);
         }
+        System.exit(0);
     }
 
-    private static int findToX(int width, int height, BufferedImage image) {
-        for (int y = height / 5, endY =  height / 2; y < endY; y++) {
-            Color background = new Color(image.getRGB(2, y - 1));
-            for ( int x = 0; x < width; x++) {
+    private static Point findTargetPoint(int width, int height, BufferedImage image) {
+        for (int y = height / 5, endY = height / 2; y < endY; y++) {
+            Color background = new Color(image.getRGB(2, y - 5));
+            int topStartX = -1;
+            for (int x = 0; x < width; x++) {
                 Color color = new Color(image.getRGB(x, y));
                 if (Math.abs(color.getRed() - background.getRed()) > 10
                         || Math.abs(color.getGreen() - background.getGreen()) > 10
                         || Math.abs(color.getBlue() - background.getBlue()) > 10) {
-                    LOG.info("跳到：" + x + ", " + y);
-                    return x;
+                    if (topStartX == -1) {
+                        topStartX = x;
+                    }
+                } else if (topStartX != -1) {
+                    return new Point((topStartX + x - 1) / 2, y);
                 }
             }
         }
