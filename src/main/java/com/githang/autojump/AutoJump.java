@@ -62,6 +62,7 @@ public class AutoJump {
             }
             Thread.sleep(2000);
         }
+        helper.disconnect();
         System.exit(0);
     }
 
