@@ -64,9 +64,9 @@ public class AutoJump {
                 final int distance = (int) Math.sqrt(Math.pow(to.x - from.x, 2) + Math.pow(to.y - from.y, 2));
                 final int time;
                 if (distance < 80) {
-                    time = (int) Math.max(200, distance * 2.099f);
+                    time = (int) Math.max(180, distance * 2.099f);
                 } else if (distance < 95) {
-                    time = (int) Math.max(220, distance * 2.5f);
+                    time = Math.max(200, 200 + distance - 80);
                 } else if (distance < 100) {
                     time = (int) (distance * 2.4f);
                 } else if (distance < 230) {
