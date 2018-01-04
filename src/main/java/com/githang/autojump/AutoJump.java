@@ -29,14 +29,16 @@ public class AutoJump {
             height = image.getHeight();
             LOG.info("查找位置");
             Point from = null;
+            long startTime = System.currentTimeMillis();
             FINDING:
-            for (int y = height * 2 / 5, endY = height * 4 / 5; y < endY; y++) {
-                for (int x = 0, endX = width - bWidth; x < endX; x++) {
+            for (int y = height * 3 / 7, endY = height * 4 / 5; y < endY; y++) {
+                for (int x = width / 5, endX = width * 4 / 5; x < endX; x++) {
                     if (isJumpFrom(image, target, x, y)) {
                         final int fromX = x + bWidth / 2;
                         final int fromY = y + bHeight * 5;
                         from = new Point(fromX, fromY);
-                        LOG.info("找到位置: " + fromX + ", " + fromY);
+                        LOG.info("找到位置: " + fromX + ", " + fromY + " 耗时: "
+                                + (System.currentTimeMillis() - startTime) + "ms");
                         break FINDING;
                     }
                 }
@@ -63,46 +65,53 @@ public class AutoJump {
                 LOG.info("跳到：" + to.x + ", " + to.y);
                 final int distance = (int) Math.sqrt(Math.pow(to.x - from.x, 2) + Math.pow(to.y - from.y, 2));
                 final int time;
-                if (distance < 80) {
-                    time = (int) Math.max(180, distance * 2.099f);
+                if (distance < 60) {
+                    time = 150 + (distance - 35) / 2;
+                } else if (distance < 80) {
+                    time = 160 + (distance - 60) * 2;
                 } else if (distance < 95) {
                     time = Math.max(200, 200 + distance - 80);
                 } else if (distance < 100) {
                     time = (int) (distance * 2.4f);
+                } else if (distance < 150) {
+                    time = (int) (distance * 2.1f);
+                } else if (distance < 210) {
+                    time = (int) (distance * 2.08f);
                 } else if (distance < 230) {
-                    time = (int) (distance * 2.06f);
+                    time = (int) (distance * 2.05f);
                 } else if (distance < 250) {
-                    time = (int) (distance * 2.02f);
+                    time = (int) (distance * 2.04f);
                 } else if (distance < 300) {
                     time = (int) (distance * 2.04f);
                 } else if (distance < 320) {
                     time = (int) (distance * 2.055f);
-                } else if (distance < 360){
-                    time = (int) (distance * 2.05f);
-                } else if (distance < 400){
+                } else if (distance < 360) {
+                    time = (int) (distance * 2.045f);
+                } else if (distance < 400) {
                     time = (int) (distance * 2.035f);
-                } else if (distance < 420){
+                } else if (distance < 420) {
                     time = (int) (distance * 2.02f);
                 } else {
                     time = (int) (distance * 2.01f);
                 }
-                LOG.info("距离：" + distance + "  按下时间：" + time + "ms");
+                long calcTime = System.currentTimeMillis() - startTime;
+                LOG.info("距离：" + distance + "  按下时间：" + time + "ms" + " 分析总耗时: " + calcTime + "ms");
                 helper.press(from.x, from.y, time);
                 drawAssistantLineAndSave(image, from, to, distance, time);
                 failedTimes = 0;
-                Thread.sleep(time);
+                Thread.sleep(time / 5);
             }
-            Thread.sleep(2000);
+            Thread.sleep(1000);
         }
         helper.disconnect();
         System.exit(0);
     }
 
     private static Point findTargetPoint(int width, int height, BufferedImage image, boolean isLeft) {
-        int padding = 10;
-        int startX = isLeft ? padding : width / 2 + padding;
-        int endX = (isLeft ? width / 2 : width) - padding;
-        for (int y = height / 5, endY = height / 2; y < endY; y++) {
+        int offset = 10;
+        int startX = isLeft ? width / 5 : (width / 2 + offset);
+        int endX = isLeft ? width / 2 : width * 4 / 5;
+        for (int y = height / 4, endY = height / 2; y < endY; y++) {
             int x1 = -1;
             for (int x = startX; x < endX; x++) {
                 Color background = new Color(image.getRGB(x - 2, y));
@@ -122,7 +131,8 @@ public class AutoJump {
                 }
             }
         }
-        throw new RuntimeException("Target point not found!");
+        LOG.warning("Target point not found!");
+        return new Point(0, 0);
     }
 
     /**
