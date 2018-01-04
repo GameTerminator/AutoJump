@@ -31,8 +31,8 @@ public class AutoJump {
             Point from = null;
             long startTime = System.currentTimeMillis();
             FINDING:
-            for (int y = height * 3 / 7, endY = height * 4 / 5; y < endY; y++) {
-                for (int x = width / 5, endX = width * 4 / 5; x < endX; x++) {
+            for (int y = height * 11 / 28, endY = height * 4 / 5; y < endY; y++) {
+                for (int x = width / 5, endX = width * 17 / 20; x < endX; x++) {
                     if (isJumpFrom(image, target, x, y)) {
                         final int fromX = x + bWidth / 2;
                         final int fromY = y + bHeight * 5;
@@ -63,45 +63,56 @@ public class AutoJump {
                     }
                 }
                 LOG.info("跳到：" + to.x + ", " + to.y);
-                final int distance = (int) Math.sqrt(Math.pow(to.x - from.x, 2) + Math.pow(to.y - from.y, 2));
+                // 俯视角度，19/11是测量出来的正方形中左边点到中心点的距离与顶部点到中心点的距离
+                final int distance = (int) Math.sqrt(Math.pow(to.x - from.x, 2) + Math.pow((to.y - from.y) * 19 / 11, 2));
                 final int time;
                 if (distance < 60) {
                     time = 150 + (distance - 35) / 2;
                 } else if (distance < 80) {
                     time = 160 + (distance - 60) * 2;
+                } else if (distance < 90) {
+                    time = 165 + (distance - 80);
                 } else if (distance < 95) {
-                    time = Math.max(200, 200 + distance - 80);
+                    time = 165 + (distance - 80) * 2;
                 } else if (distance < 100) {
-                    time = (int) (distance * 2.4f);
-                } else if (distance < 150) {
-                    time = (int) (distance * 2.1f);
-                } else if (distance < 210) {
-                    time = (int) (distance * 2.08f);
-                } else if (distance < 230) {
-                    time = (int) (distance * 2.05f);
-                } else if (distance < 250) {
-                    time = (int) (distance * 2.04f);
+                    time = (int) (distance * 1.8f);
+                } else if (distance < 180) {
+                    time = (int) (160 + (distance - 100) * 1.65f);
+                } else if (distance < 190) {
+                    time = (int) (160 + (distance - 100) * 1.65f);
+                } else if (distance < 200) {
+                    time = (int) (160 + (distance - 100) * 1.7f);
+                } else if (distance < 220) {
+                    time = (int) (170 + (distance - 100) * 1.65f);
+                } else if (distance < 240) {
+                    time = (int) (1.67 * distance);
+                } else if (distance < 280) {
+                    time = (int) (1.67 * distance);
                 } else if (distance < 300) {
-                    time = (int) (distance * 2.04f);
-                } else if (distance < 320) {
-                    time = (int) (distance * 2.055f);
-                } else if (distance < 360) {
-                    time = (int) (distance * 2.045f);
-                } else if (distance < 400) {
-                    time = (int) (distance * 2.035f);
-                } else if (distance < 420) {
-                    time = (int) (distance * 2.02f);
+                    time = (int) (1.66 * distance);
+                } else if (distance < 350) {
+                    time = (int) (1.66 * distance);
+                } else if (distance < 430) {
+                    time = (int) (1.66 * distance);
+                } else if (distance < 440) {
+                    time = (int) (1.66 * distance);
+                } else if (distance < 450) {
+                    time = (int) (1.64 * distance);
+                } else if (distance < 500) {
+                    time = (int) (1.6 * distance + 25);
+                } else if (distance < 550) {
+                    time = (int) (1.57 * distance + 45);
                 } else {
-                    time = (int) (distance * 2.01f);
+                    time = (int) (1.58 * distance + 25);
                 }
                 long calcTime = System.currentTimeMillis() - startTime;
                 LOG.info("距离：" + distance + "  按下时间：" + time + "ms" + " 分析总耗时: " + calcTime + "ms");
                 helper.press(from.x, from.y, time);
                 drawAssistantLineAndSave(image, from, to, distance, time);
                 failedTimes = 0;
-                Thread.sleep(time / 5);
+                Thread.sleep(time / 10);
             }
-            Thread.sleep(1000);
+            Thread.sleep(1050);
         }
         helper.disconnect();
         System.exit(0);
@@ -110,7 +121,7 @@ public class AutoJump {
     private static Point findTargetPoint(int width, int height, BufferedImage image, boolean isLeft) {
         int offset = 10;
         int startX = isLeft ? width / 5 : (width / 2 + offset);
-        int endX = isLeft ? width / 2 : width * 4 / 5;
+        int endX = isLeft ? width / 2 : width * 9 / 10;
         for (int y = height / 4, endY = height / 2; y < endY; y++) {
             int x1 = -1;
             for (int x = startX; x < endX; x++) {
@@ -140,7 +151,7 @@ public class AutoJump {
      */
     private static Point findRightTargetRightPoint(BufferedImage image, int fromX, int toX, int fromY, int toY) {
         Point lastDifferentPoint = null;
-        int pointCount = 1;
+        int pointCount = 0;
         for (int y = fromY; y < toY; y++) {
             Color background = new Color(image.getRGB(fromX - 1, y));
             for (int x = fromX - 1; x > toX; x--) {
@@ -167,7 +178,7 @@ public class AutoJump {
 
     private static Point findLeftTargetLeftPoint(BufferedImage image, int fromX, int toX, int fromY, int toY) {
         Point lastDifferentPoint = null;
-        int pointCount = 1;
+        int pointCount = 0;
         for (int y = fromY; y < toY; y++) {
             Color background = new Color(image.getRGB(fromX + 1, y));
             for (int x = fromX + 1; x < toX; x++) {
