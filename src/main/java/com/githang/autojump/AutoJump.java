@@ -55,11 +55,15 @@ public class AutoJump {
                     Point toLeftPoint = findLeftTargetLeftPoint(image, 0, to.x, to.y, from.y);
                     if (toLeftPoint != null) {
                         to.y = toLeftPoint.y;
+                    } else {
+                        to.y += bHeight;
                     }
                 } else {
                     Point toRightPoint = findRightTargetRightPoint(image, width, to.x, to.y, from.y);
                     if (toRightPoint != null) {
                         to.y = toRightPoint.y;
+                    } else {
+                        to.y += bHeight;
                     }
                 }
                 LOG.info("跳到：" + to.x + ", " + to.y);
@@ -201,9 +205,9 @@ public class AutoJump {
     }
 
     private static boolean isDifferentColor(Color background, Color color) {
-        return Math.abs(color.getRed() - background.getRed()) > 5
-                || Math.abs(color.getGreen() - background.getGreen()) > 5
-                || Math.abs(color.getBlue() - background.getBlue()) > 5;
+        return Math.abs(color.getRed() - background.getRed()) > 4
+                || Math.abs(color.getGreen() - background.getGreen()) > 4
+                || Math.abs(color.getBlue() - background.getBlue()) > 4;
     }
 
     private static boolean isJumpFrom(BufferedImage source, BufferedImage target, int x, int y) {
