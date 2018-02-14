@@ -5,6 +5,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Scanner;
 import java.util.logging.Logger;
 
 /**
@@ -23,13 +24,18 @@ public class AutoJump {
         int bWidth = target.getWidth();
         int bHeight = target.getHeight();
         int failedTimes = 0;
-        while (true) {
+        Scanner scan = new Scanner(System.in);
+        LOG.info("准备");
+        while (scan.next() != null) {
+            LOG.info("截图中");
+            long startTime = System.currentTimeMillis();
             BufferedImage image = helper.snapshot();
+            LOG.info("截图耗时" + (System.currentTimeMillis() - startTime) + "ms");
             width = image.getWidth();
             height = image.getHeight();
             LOG.info("查找位置");
             Point from = null;
-            long startTime = System.currentTimeMillis();
+            long startCalcTime = System.currentTimeMillis();
             FINDING:
             for (int y = height * 11 / 28, endY = height * 4 / 5; y < endY; y++) {
                 for (int x = width / 5, endX = width * 17 / 20; x < endX; x++) {
@@ -38,7 +44,7 @@ public class AutoJump {
                         final int fromY = y + bHeight * 5;
                         from = new Point(fromX, fromY);
                         LOG.info("找到位置: " + fromX + ", " + fromY + " 耗时: "
-                                + (System.currentTimeMillis() - startTime) + "ms");
+                                + (System.currentTimeMillis() - startCalcTime) + "ms");
                         break FINDING;
                     }
                 }
@@ -48,6 +54,8 @@ public class AutoJump {
                 if (failedTimes >= 3) {
                     break;
                 }
+                helper.press(300, 300, 1);
+                LOG.info("找不到，策略点一下");
             } else {
                 final boolean isLeft = from.x > width / 2;
                 final Point to = findTargetPoint(width, height, image, isLeft);
@@ -109,24 +117,23 @@ public class AutoJump {
                 } else {
                     time = (int) (1.58 * distance + 25);
                 }
-                long calcTime = System.currentTimeMillis() - startTime;
+                long calcTime = System.currentTimeMillis() - startCalcTime;
                 LOG.info("距离：" + distance + "  按下时间：" + time + "ms" + " 分析总耗时: " + calcTime + "ms");
                 helper.press(from.x, from.y, time);
                 drawAssistantLineAndSave(image, from, to, distance, time);
                 failedTimes = 0;
-                Thread.sleep(time / 10);
             }
-            Thread.sleep(1050);
+            LOG.info("总耗时" + (System.currentTimeMillis() - startTime) + "ms");
         }
         helper.disconnect();
         System.exit(0);
     }
 
     private static Point findTargetPoint(int width, int height, BufferedImage image, boolean isLeft) {
-        int offset = 10;
+        int offset = 20;
         int startX = isLeft ? width / 5 : (width / 2 + offset);
         int endX = isLeft ? width / 2 : width * 9 / 10;
-        for (int y = height / 4, endY = height / 2; y < endY; y++) {
+        for (int y = height * 9 / 28, endY = height / 2; y < endY; y++) {
             int x1 = -1;
             for (int x = startX; x < endX; x++) {
                 Color background = new Color(image.getRGB(x - 2, y));
